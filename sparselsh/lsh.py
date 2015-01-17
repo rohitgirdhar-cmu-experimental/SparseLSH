@@ -101,6 +101,8 @@ class LSH(object):
                     npzfiles = sorted(npzfiles.items(), key=lambda x: x[0])
                     # TODO: to sparse
                     self.uniform_planes = [t[1] for t in npzfiles]
+                    # HACKY (TODO FIX): since only one plane, just make into csr_array
+                    self.uniform_planes = [self.uniform_planes[0].item(0)]
             else:
                 self.uniform_planes = [self._generate_uniform_planes()
                                        for _ in xrange(self.num_hashtables)]
@@ -253,7 +255,7 @@ class LSH(object):
 
         candidates = set()
         if not distance_func:
-            distance_func = "euclidean"
+            distance_func = "cosine"
 
             for i, table in enumerate(self.hash_tables):
                 # get hash of query point
@@ -268,7 +270,7 @@ class LSH(object):
                         members = table.get_list(key)
                         candidates.update(members)
 
-            d_func = LSH.euclidean_dist_square
+            d_func = LSH.cosine_dist
 
         else:
 
@@ -290,12 +292,16 @@ class LSH(object):
                 binary_hash = self._hash(self.uniform_planes[i], query_point)
                 candidates.update(table.get_list(binary_hash)[0])
 
-        print "Candidates", candidates
+#        print "Candidates", candidates
         # # rank candidates by distance function
         ranked_candidates = []
         for ix in candidates:
             point = self._as_np_array(ix)
-            dist = d_func(query_point, point)
+            if distance_func == "cosine":
+                dist = d_func(np.squeeze(np.asarray(query_point.todense())),
+                        np.squeeze(np.asarray(point.todense())))
+            else:
+                dist = d_func(query_point, point)
             ranked_candidates.append( (ix,dist))
 
         # TODO: stop sorting when we have top num_results, instead of truncating
