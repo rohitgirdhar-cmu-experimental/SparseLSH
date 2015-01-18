@@ -290,7 +290,8 @@ class LSH(object):
             # TODO: pull out into fn w/ optional threshold arg
             for i, table in enumerate(self.hash_tables):
                 binary_hash = self._hash(self.uniform_planes[i], query_point)
-                candidates.update(table.get_list(binary_hash)[0])
+                for el in table.get_list(binary_hash):
+                    candidates.add(el)
 
 #        print "Candidates", candidates
         # # rank candidates by distance function
