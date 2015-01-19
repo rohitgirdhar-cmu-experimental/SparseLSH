@@ -214,7 +214,9 @@ class LSH(object):
         # we need to allow blank extra_data if it's provided
         if not isinstance(extra_data, type(None)):
             # NOTE: needs to be tuple so it's set-hashable
-            value = (input_point, extra_data)
+#            value = (input_point, extra_data)
+            ## TEMP : Just storing extra_data for speed
+            value = (extra_data)
         else:
             value = input_point
 
@@ -292,6 +294,9 @@ class LSH(object):
                 binary_hash = self._hash(self.uniform_planes[i], query_point)
                 for el in table.get_list(binary_hash):
                     candidates.add(el)
+
+        ## TEMP: Not storing the features so just return the extra_data
+        return candidates
 
 #        print "Candidates", candidates
         # # rank candidates by distance function
